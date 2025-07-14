@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import { mockApiService, USE_MOCK_DATA } from '../services/mockApi';
 
 export default function Home() {
   const [foodCat, setFoodCat] = useState([]);
@@ -10,18 +11,30 @@ export default function Home() {
 
   const loadFoodItems = async () => {
     try {
-      let response = await fetch("http://localhost:5000/api/auth/foodData", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      if (USE_MOCK_DATA) {
+        // Use mock data for demo deployment
+        const data = await mockApiService.getFoodData();
+        setFoodItems(data[0]);
+        setFoodCat(data[1]);
+      } else {
+        // Use real API for local development
+        let response = await fetch("http://localhost:5000/api/auth/foodData", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
 
-      if (!response.ok) throw new Error('Failed to fetch');
+        if (!response.ok) throw new Error('Failed to fetch');
 
-      let data = await response.json();
-      setFoodItems(data[0]);
-      setFoodCat(data[1]);
+        let data = await response.json();
+        setFoodItems(data[0]);
+        setFoodCat(data[1]);
+      }
     } catch (error) {
       console.error("Error loading food items:", error);
+      // Fallback to mock data if API fails
+      const data = await mockApiService.getFoodData();
+      setFoodItems(data[0]);
+      setFoodCat(data[1]);
     }
   };
 
