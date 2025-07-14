@@ -90,13 +90,13 @@ export default function Signup() {
   }
 
   return (
-    <div className="auth-background" style={{ backgroundImage: 'url("https://images.pexels.com/photos/1565982/pexels-photo-1565982.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")', backgroundSize: 'cover',height: '100vh' }}>
+    <div className="auth-background" style={{ backgroundImage: 'url("https://images.pexels.com/photos/1565982/pexels-photo-1565982.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")', backgroundSize: 'cover', minHeight: '100vh' }}>
       <div>
       <Navbar />
       </div>
 
         <div className='container' >
-          <form className='auth-form w-100 w-md-75 w-lg-50 m-auto mt-3 mt-md-5 mx-3 mx-md-auto border bg-dark border-success rounded' onSubmit={handleSubmit}>
+          <form className='auth-form border bg-dark border-success rounded' onSubmit={handleSubmit}>
             <div className="m-3">
               <label htmlFor="name" className="form-label">Name</label>
               <input type="text" className="form-control" name='name' value={credentials.name} onChange={onChange} aria-describedby="emailHelp" />
