@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { mockApiService, USE_MOCK_DATA } from '../services/mockApi';
+import API_BASE_URL from '../config/api';
 
 export default function Home() {
   const [foodCat, setFoodCat] = useState([]);
@@ -12,13 +13,17 @@ export default function Home() {
   const loadFoodItems = async () => {
     try {
       if (USE_MOCK_DATA) {
-        // Use mock data for demo deployment
+        // Use mock data when no backend URL is configured
+        console.log("🔧 Using mock data - no backend URL configured");
         const data = await mockApiService.getFoodData();
         setFoodItems(data[0]);
         setFoodCat(data[1]);
       } else {
-        // Use real API for local development
-        let response = await fetch("http://localhost:5000/api/auth/foodData", {
+        // Use real API (either localhost or deployed backend)
+        const apiUrl = API_BASE_URL || 'http://localhost:5000';
+        console.log(`🔗 Connecting to backend: ${apiUrl}`);
+        
+        let response = await fetch(`${apiUrl}/api/auth/foodData`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -28,6 +33,7 @@ export default function Home() {
         let data = await response.json();
         setFoodItems(data[0]);
         setFoodCat(data[1]);
+        console.log(`📦 Loaded ${data[0]?.length || 0} food items from backend`);
       }
     } catch (error) {
       console.error("Error loading food items:", error);

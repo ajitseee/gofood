@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
 require('dotenv').config()
-// const mongoDbClient = require("mongodb").MongoClient
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://ajitsingh:as5759423@cluster0.8lgsfn3.mongodb.net/gofoodmern?retryWrites=true&w=majority&appName=Cluster0';
+
+// Use environment variable first, fallback to your existing connection string
+const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb+srv://ajitsingh:as5759423@cluster0.8lgsfn3.mongodb.net/gofoodmern?retryWrites=true&w=majority&appName=Cluster0';
 
 module.exports = function (callback) {
     mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true }, async (err, result) => {
