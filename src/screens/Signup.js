@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar';
 import { mockApiService, USE_MOCK_DATA } from '../services/mockApi';
+import '../mobile-responsive.css';
 export default function Signup() {
   const [credentials, setCredentials] = useState({ name: "", email: "", password: "", geolocation: "" })
   let [address, setAddress] = useState("");
@@ -89,13 +90,13 @@ export default function Signup() {
   }
 
   return (
-    <div style={{ backgroundImage: 'url("https://images.pexels.com/photos/1565982/pexels-photo-1565982.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")', backgroundSize: 'cover',height: '100vh' }}>
+    <div className="auth-background" style={{ backgroundImage: 'url("https://images.pexels.com/photos/1565982/pexels-photo-1565982.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")', backgroundSize: 'cover',height: '100vh' }}>
       <div>
       <Navbar />
       </div>
 
         <div className='container' >
-          <form className='w-50 m-auto mt-5 border bg-dark border-success rounded' onSubmit={handleSubmit}>
+          <form className='auth-form w-100 w-md-75 w-lg-50 m-auto mt-3 mt-md-5 mx-3 mx-md-auto border bg-dark border-success rounded' onSubmit={handleSubmit}>
             <div className="m-3">
               <label htmlFor="name" className="form-label">Name</label>
               <input type="text" className="form-control" name='name' value={credentials.name} onChange={onChange} aria-describedby="emailHelp" />
@@ -111,7 +112,7 @@ export default function Signup() {
               </fieldset>
             </div>
             <div className="m-3">
-              <button type="button" onClick={handleClick} name="geolocation" className=" btn btn-success">Click for current Location </button>
+              <button type="button" onClick={handleClick} name="geolocation" className="location-btn btn btn-success">Click for current Location </button>
             </div>
             <div className="m-3">
               <label htmlFor="exampleInputPassword1" className="form-label">Password</label>
