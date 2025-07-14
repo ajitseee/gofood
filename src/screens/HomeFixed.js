@@ -2,15 +2,11 @@ import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
-import SearchAndFilter from '../components/SearchAndFilter';
 
 export default function Home() {
   const [foodCat, setFoodCat] = useState([]);
   const [foodItems, setFoodItems] = useState([]);
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
-  const [sortBy, setSortBy] = useState('');
 
   const loadFoodItems = async () => {
     try {
@@ -29,41 +25,6 @@ export default function Home() {
     }
   };
 
-  // Filter and sort function
-  const getFilteredAndSortedItems = (items, categoryName) => {
-    let filtered = items.filter(item => {
-      const matchesCategory = item.CategoryName === categoryName;
-      const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
-      const matchesSelectedCategory = !selectedCategory || item.CategoryName === selectedCategory;
-      
-      // Get price from first option
-      const price = item.options && item.options[0] ? 
-        Math.min(...Object.values(item.options[0]).filter(val => typeof val === 'number')) : 0;
-      const matchesPrice = price >= priceRange.min && price <= priceRange.max;
-      
-      return matchesCategory && matchesSearch && matchesSelectedCategory && matchesPrice;
-    });
-
-    // Sort items
-    if (sortBy === 'price-low') {
-      filtered.sort((a, b) => {
-        const priceA = a.options && a.options[0] ? Math.min(...Object.values(a.options[0]).filter(val => typeof val === 'number')) : 0;
-        const priceB = b.options && b.options[0] ? Math.min(...Object.values(b.options[0]).filter(val => typeof val === 'number')) : 0;
-        return priceA - priceB;
-      });
-    } else if (sortBy === 'price-high') {
-      filtered.sort((a, b) => {
-        const priceA = a.options && a.options[0] ? Math.min(...Object.values(a.options[0]).filter(val => typeof val === 'number')) : 0;
-        const priceB = b.options && b.options[0] ? Math.min(...Object.values(b.options[0]).filter(val => typeof val === 'number')) : 0;
-        return priceB - priceA;
-      });
-    } else if (sortBy === 'name') {
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    return filtered;
-  };
-
   useEffect(() => {
     loadFoodItems();
   }, []);
@@ -76,7 +37,7 @@ export default function Home() {
       <div className="container-fluid bg-dark text-white py-5" style={{ marginTop: "56px" }}>
         <div className="container">
           <div className="row align-items-center">
-            <div className="col-md-6">
+            <div className="col-md-8">
               <h1 className="display-4 fw-bold mb-3">
                 <i className="fas fa-leaf text-success me-2"></i>
                 Delicious Vegetarian Food
@@ -85,18 +46,29 @@ export default function Home() {
                 Order fresh, healthy, and tasty vegetarian meals delivered right to your door!
               </p>
             </div>
-            <div className="col-md-6">
-              <SearchAndFilter
-                searchTerm={search}
-                onSearchChange={setSearch}
-                categories={foodCat}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                priceRange={priceRange}
-                onPriceChange={setPriceRange}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-              />
+            <div className="col-md-4">
+              <div className="card search-filter-card p-4">
+                <div className="input-group mb-3">
+                  <span className="input-group-text">
+                    <i className="fas fa-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search for food..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button 
+                      className="btn btn-outline-secondary"
+                      onClick={() => setSearch('')}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -105,10 +77,12 @@ export default function Home() {
       {/* Food Categories & Items */}
       <div className='container my-4'>
         {foodCat.length > 0 ? foodCat.map((data, catIndex) => {
-          const filteredItems = getFilteredAndSortedItems(foodItems, data.CategoryName);
+          const filteredItems = foodItems.filter(item => 
+            item.CategoryName === data.CategoryName && 
+            item.name.toLowerCase().includes(search.toLowerCase())
+          );
           
-          // Only show category if it has items after filtering
-          if (filteredItems.length === 0 && (selectedCategory || search)) return null;
+          if (filteredItems.length === 0 && search) return null;
           
           return (
             <div key={catIndex} className='row mb-5'>
@@ -153,22 +127,22 @@ export default function Home() {
         )}
 
         {/* No Results Message */}
-        {foodCat.length > 0 && foodItems.length > 0 && 
-         foodCat.every(cat => getFilteredAndSortedItems(foodItems, cat.CategoryName).length === 0) && (
+        {foodCat.length > 0 && foodItems.length > 0 && search &&
+         foodCat.every(cat => 
+           foodItems.filter(item => 
+             item.CategoryName === cat.CategoryName && 
+             item.name.toLowerCase().includes(search.toLowerCase())
+           ).length === 0
+         ) && (
           <div className="text-center py-5">
             <i className="fas fa-search fa-4x text-muted mb-4"></i>
             <h3>No food items found</h3>
-            <p className="text-muted">Try adjusting your search or filter criteria</p>
+            <p className="text-muted">Try adjusting your search criteria</p>
             <button 
               className="btn btn-success"
-              onClick={() => {
-                setSearch('');
-                setSelectedCategory('');
-                setPriceRange({ min: 0, max: 1000 });
-                setSortBy('');
-              }}
+              onClick={() => setSearch('')}
             >
-              <i className="fas fa-undo me-2"></i>Clear All Filters
+              <i className="fas fa-undo me-2"></i>Clear Search
             </button>
           </div>
         )}

@@ -144,54 +144,71 @@ router.post('/foodData', async (req, res) => {
 })
 
 router.post('/orderData', async (req, res) => {
-    let data = req.body.order_data
-    await data.splice(0,0,{Order_date:req.body.order_date})
-    console.log("1231242343242354",req.body.email)
+    try {
+        let data = req.body.order_data
+        await data.splice(0,0,{Order_date:req.body.order_date})
+        console.log("📦 Order request received for email:", req.body.email)
+        console.log("📋 Order data:", data)
 
-    //if email not exisitng in db then create: else: InsertMany()
-    let eId = await Order.findOne({ 'email': req.body.email })    
-    console.log(eId)
-    if (eId===null) {
-        try {
-            console.log(data)
-            console.log("1231242343242354",req.body.email)
-            await Order.create({
-                email: req.body.email,
-                order_data:[data]
-            }).then(() => {
-                res.json({ success: true })
-            })
-        } catch (error) {
-            console.log(error.message)
-            res.send("Server Error", error.message)
-
-        }
-    }
-
-    else {
-        try {
-            await Order.findOneAndUpdate({email:req.body.email},
-                { $push:{order_data: data} }).then(() => {
+        //if email not existing in db then create: else: InsertMany()
+        let eId = await Order.findOne({ 'email': req.body.email })    
+        console.log("🔍 Existing order found:", eId ? "Yes" : "No")
+        
+        if (eId===null) {
+            try {
+                console.log("🆕 Creating new order record")
+                await Order.create({
+                    email: req.body.email,
+                    order_data:[data]
+                }).then(() => {
+                    console.log("✅ New order created successfully")
                     res.json({ success: true })
                 })
-        } catch (error) {
-            console.log(error.message)
-            res.send("Server Error", error.message)
+            } catch (error) {
+                console.log("❌ Error creating new order:", error.message)
+                res.status(500).json({ success: false, error: error.message })
+            }
         }
+        else {
+            try {
+                console.log("🔄 Updating existing order record")
+                await Order.findOneAndUpdate({email:req.body.email},
+                    { $push:{order_data: data} }).then(() => {
+                        console.log("✅ Order updated successfully")
+                        res.json({ success: true })
+                    })
+            } catch (error) {
+                console.log("❌ Error updating order:", error.message)
+                res.status(500).json({ success: false, error: error.message })
+            }
+        }
+    } catch (error) {
+        console.log("❌ Order processing error:", error.message)
+        res.status(500).json({ success: false, error: "Server Error" })
     }
 })
 
 router.post('/myOrderData', async (req, res) => {
     try {
-        console.log(req.body.email)
-        let eId = await Order.findOne({ 'email': req.body.email })
-        //console.log(eId)
-        res.json({orderData:eId})
-    } catch (error) {
-        res.send("Error",error.message)
-    }
-    
+        const email = req.body.email;
+        console.log("🔍 Fetching orders for email:", email)
+        
+        if (!email) {
+            return res.status(400).json({ success: false, error: "Email is required" });
+        }
 
+        let eId = await Order.findOne({ 'email': email })
+        console.log("📋 Order data found:", eId ? "Yes" : "No")
+        
+        if (eId) {
+            console.log("📦 Number of orders:", eId.order_data ? eId.order_data.length : 0)
+        }
+        
+        res.json({orderData: eId})
+    } catch (error) {
+        console.error("❌ Error fetching orders:", error.message)
+        res.status(500).json({ success: false, error: error.message })
+    }
 });
 
 module.exports = router
