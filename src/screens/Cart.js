@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Delete from '@mui/icons-material/Delete'
 import { useCart, useDispatchCart } from '../components/ContextReducer';
 import PaymentGatewayClean from '../components/PaymentGatewayClean';
+import { mockApiService, USE_MOCK_DATA } from '../services/mockApi';
 
 export default function Cart() {
   let data = useCart();
@@ -36,26 +37,48 @@ export default function Cart() {
     setOrderStatus('');
 
     try {
-      let response = await fetch("http://localhost:5000/api/auth/orderData", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      let response;
+      
+      if (USE_MOCK_DATA) {
+        // Use mock API for production deployment
+        response = await mockApiService.orderData({
           order_data: data,
           email: userEmail,
           order_date: new Date().toDateString(),
           payment_info: paymentData
-        })
-      });
-
-      if (response.ok) {
-        setOrderStatus('success');
-        dispatch({ type: "DROP" });
-        setShowPayment(false);
-        alert(`Payment successful! Transaction ID: ${paymentData.transactionId}`);
+        });
+        
+        if (response.success) {
+          setOrderStatus('success');
+          dispatch({ type: "DROP" });
+          setShowPayment(false);
+          alert(`Payment successful! Order ID: ${response.orderId} (Demo Mode)`);
+        } else {
+          throw new Error('Order failed');
+        }
       } else {
-        throw new Error('Order failed');
+        // Use real API for local development
+        response = await fetch("http://localhost:5000/api/auth/orderData", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            order_data: data,
+            email: userEmail,
+            order_date: new Date().toDateString(),
+            payment_info: paymentData
+          })
+        });
+
+        if (response.ok) {
+          setOrderStatus('success');
+          dispatch({ type: "DROP" });
+          setShowPayment(false);
+          alert(`Payment successful! Transaction ID: ${paymentData.transactionId}`);
+        } else {
+          throw new Error('Order failed');
+        }
       }
     } catch (error) {
       console.error('Order failed:', error);

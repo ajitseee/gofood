@@ -1,7 +1,13 @@
 // API Configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-api.vercel.app' // Will update this after backend deployment
-  : 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL 
+  || (process.env.NODE_ENV === 'production' 
+    ? 'https://your-backend-url.render.com' // Replace with your actual backend URL after deployment
+    : 'http://localhost:5000');
+
+// Helper function to check if we should use mock data
+export const shouldUseMockData = () => {
+  return process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL;
+};
 
 export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/api/auth/login`,

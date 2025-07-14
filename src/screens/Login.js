@@ -1,30 +1,39 @@
 import React, { useState } from 'react'
 import Navbar from '../components/Navbar';
 import { useNavigate, Link } from 'react-router-dom'
+import { mockApiService, USE_MOCK_DATA } from '../services/mockApi';
 export default function Login() {
   const [credentials, setCredentials] = useState({ email: "", password: "" })
   let navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:5000/api/auth/login", {
-      // credentials: 'include',
-      // Origin:"http://localhost:3000/login",
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email: credentials.email, password: credentials.password })
-
-    });
-    const json = await response.json()
+    
+    let json;
+    if (USE_MOCK_DATA) {
+      // Use mock API for production deployment
+      json = await mockApiService.login({ 
+        email: credentials.email, 
+        password: credentials.password 
+      });
+    } else {
+      // Use real API for local development
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: credentials.email, password: credentials.password })
+      });
+      json = await response.json();
+    }
+    
     console.log(json);
     if (json.success) {
       //save the auth toke to local storage and redirect
       localStorage.setItem('userEmail', credentials.email)
       localStorage.setItem('token', json.authToken)
       navigate("/");
-
     }
     else {
       alert("Enter Valid Credentials")

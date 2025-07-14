@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar';
+import { mockApiService, USE_MOCK_DATA } from '../services/mockApi';
 export default function Signup() {
   const [credentials, setCredentials] = useState({ name: "", email: "", password: "", geolocation: "" })
   let [address, setAddress] = useState("");
@@ -8,6 +9,15 @@ export default function Signup() {
 
   const handleClick = async (e) => {
     e.preventDefault();
+    
+    if (USE_MOCK_DATA) {
+      // Use mock location for production demo
+      setAddress("Demo Location - Mumbai, India");
+      setCredentials({ ...credentials, [e.target.name]: "Demo Location - Mumbai, India" });
+      return;
+    }
+    
+    // Real geolocation for local development
     let navLocation = () => {
       return new Promise((res, rej) => {
         navigator.geolocation.getCurrentPosition(res, rej);
@@ -18,7 +28,6 @@ export default function Signup() {
       let longitude = res.coords.longitude;
       return [latitude, longitude]
     })
-    // console.log(latlong)
     let [lat, long] = latlong
     console.log(lat, long)
     const response = await fetch("http://localhost:5000/api/auth/getlocation", {
@@ -27,7 +36,6 @@ export default function Signup() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ latlong: { lat, long } })
-
     });
     const { location } = await response.json()
     console.log(location);
@@ -37,17 +45,33 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:5000/api/auth/createuser", {
-      // credentials: 'include',
-      // Origin:"http://localhost:3000/login",
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name: credentials.name, email: credentials.email, password: credentials.password, location: credentials.geolocation })
-
-    });
-    const json = await response.json()
+    
+    let json;
+    if (USE_MOCK_DATA) {
+      // Use mock API for production deployment
+      json = await mockApiService.signup({
+        name: credentials.name,
+        email: credentials.email,
+        password: credentials.password,
+        location: credentials.geolocation
+      });
+    } else {
+      // Use real API for local development
+      const response = await fetch("http://localhost:5000/api/auth/createuser", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          name: credentials.name, 
+          email: credentials.email, 
+          password: credentials.password, 
+          location: credentials.geolocation 
+        })
+      });
+      json = await response.json();
+    }
+    
     console.log(json);
     if (json.success) {
       //save the auth toke to local storage and redirect
